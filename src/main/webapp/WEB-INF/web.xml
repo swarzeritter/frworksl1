@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="https://jakarta.ee/xml/ns/jakartaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee
+         https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
+         version="6.0"
+         metadata-complete="false">
+    <display-name>Guestbook Application</display-name>
+    
+    <servlet>
+        <servlet-name>IndexServlet</servlet-name>
+        <servlet-class>org.example.guestbook.IndexServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>IndexServlet</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>CommentsServlet</servlet-name>
+        <servlet-class>org.example.guestbook.CommentsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CommentsServlet</servlet-name>
+        <url-pattern>/comments</url-pattern>
+    </servlet-mapping>
+</web-app>
+
