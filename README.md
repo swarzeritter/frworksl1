@@ -1,114 +1,94 @@
-## Лабораторна робота 1 — «Книга відгуків»
+# Bookstore Application - Лабораторна робота 2
 
-**Дисципліна**: Сучасні фреймворки програмування  
-**Завдання**: базовий веб-додаток у рамках Jakarta з використанням Maven, Jetty 11, JDBC/H2 та логування.
+## Опис
 
-### Використані версії
+Веб-застосунок "Каталог книг" з трирівневою архітектурою на базі багатомодульного Maven-проекту.
 
-- **JDK**: 21 (Java 21)
-- **Maven**: 3.x
+## Структура проєкту
 
-### Стек технологій
-
-- **Сервлети**: Jakarta Servlet API 5.0.0 (через `jakarta.servlet-api`, scope `provided`)
-- **Сервер застосунків**: Jetty 11.0.24 (`jetty-maven-plugin`)
-- **База даних**: H2 2.2.224 (вбудована, файловий режим)
-- **Доступ до БД**: чистий JDBC
-- **JSON-серіалізація**: Jackson Databind 2.17.2 + Jackson Datatype JSR310
-- **Логування**: SLF4J 2.0.16 + Logback Classic 1.5.7
-
-### Налаштування БД
-
-- **JDBC URL**: `jdbc:h2:file:/data/guest;AUTO_SERVER=TRUE`
-- **Користувач**: `sa`
-- **Пароль**: порожній рядок
-- **Шлях до файлу БД**: `/data/guest.mv.db` (створюється автоматично)
-- **DDL** (створення таблиці `comments`):
-
-```sql
-create table if not exists comments (
-    id bigint generated always as identity primary key,
-    author varchar(64) not null,
-    text varchar(1000) not null,
-    created_at timestamp not null
-);
+```
+bookstore-parent/
+├── core/          # Доменна логіка, моделі, порти, сервіси
+├── persistence/   # Реалізація портів через JDBC/H2
+└── web/           # HTTP-контракти через Servlet API
 ```
 
-Схема ініціалізується автоматично при першому зверненні до DAO.
+## Технології
 
-### Структура проєкту
+- **JDK**: 21
+- **Maven**: 3.x
+- **Jetty**: 11.0.24
+- **H2**: 2.2.224
+- **Jackson**: 2.17.2
+- **SLF4J/Logback**: 2.0.16 / 1.5.7
+- **ArchUnit**: 1.3.0
 
-- `pom.xml` — конфігурація Maven (war-packaging, плагіни compiler і jetty, залежності)
-- `src/main/java/org/example/guestbook/Comment` — модель коментаря
-- `src/main/java/org/example/guestbook/CommentDao` — робота з H2 через JDBC
-- `src/main/java/org/example/guestbook/CommentsServlet` — REST-ендпоінт `/comments` (GET/POST)
-- `src/main/java/org/example/guestbook/IndexServlet` — кореневий ендпоінт `/` з HTML-сторінкою
-- `src/main/webapp/WEB-INF/web.xml` — конфігурація веб-додатку
-- `src/main/resources/logback.xml` — налаштування логування
-
-Сторінка `/` реалізована як HTML, що генерується в сервлеті `IndexServlet`, з вбудованим JavaScript для звернення до REST-ендпоінта `/comments`.
-
-### Ендпоінти
-
-- **GET `/`**
-  - HTML-сторінка з формою (`author`, `text`) та списком відгуків (рендериться через JS, запит на `/comments`).
-
-- **GET `/comments`**
-  - Повертає JSON-список коментарів, відсортований за новизною (останні зверху).
-  - **Content-Type**: `application/json; charset=UTF-8`
-  - **Приклад відповіді**:
-    ```json
-    [
-      {
-        "id": 1,
-        "author": "Ім'я",
-        "text": "Текст відгуку",
-        "createdAt": "2025-12-24T13:45:00"
-      }
-    ]
-    ```
-
-- **POST `/comments`**
-  - Додає новий запис у БД.
-  - **Content-Type**: `application/x-www-form-urlencoded; charset=UTF-8`
-  - **Параметри форми**:
-    - `author` — обов'язково, довжина ≤ 64
-    - `text` — обов'язково, довжина ≤ 1000
-  - **Коди відповіді**:
-    - `204` (No Content) — успіх, без тіла.
-    - `400` (Bad Request) — помилка валідації (порожнє чи надто довге поле).
-    - `500` (Internal Server Error) — збій при роботі з БД.
-
-### Логування
-
-Після успішного додавання запису сервлет `CommentsServlet` пише один **INFO**-лог через SLF4J/Logback з основною інформацією:
-
-- `id` нового коментаря,
-- `author`,
-- довжина `text`.
-
-Очікується, що при додаванні 2–3 відгуків у консолі Maven/Jetty будуть відповідні записи типу `INFO ... New comment added ...`.
-
-### Запуск застосунку
-
-У каталозі `frworks`:
+## Запуск
 
 ```bash
+cd web
 mvn jetty:run
 ```
 
-Після успішного старту Jetty застосунок буде доступний за адресою:
+Додаток буде доступний за адресою: http://localhost:8080/
 
-- **http://localhost:8080/** — головна сторінка з формою та списком відгуків
-- **http://localhost:8080/comments** — JSON API для отримання списку відгуків
+## API Endpoints
 
-### Збірка WAR-файлу
+### GET /books
+Список книг з підтримкою пошуку, пагінації та сортування.
 
-Для створення WAR-файлу:
+**Параметри**:
+- `q` - пошуковий запит (опціонально)
+- `page` - номер сторінки (за замовчуванням 0)
+- `size` - розмір сторінки (за замовчуванням 10, максимум 100)
+- `sort` - сортування: `title` або `author` (опціонально)
+
+**Приклад**: `GET /books?q=java&page=0&size=10&sort=title`
+
+### GET /books/{id}
+Отримання книги за ID.
+
+### GET /book-details/{id}
+Отримання книги з відгуками.
+
+### GET /comments
+Список відгуків для книги.
+
+**Параметри**:
+- `bookId` - ID книги (обов'язково)
+
+**Приклад**: `GET /comments?bookId=1`
+
+### POST /comments
+Створення відгуку.
+
+**Параметри форми**:
+- `bookId` - ID книги (обов'язково)
+- `author` - автор (обов'язково, ≤ 64 символів)
+- `text` - текст (обов'язково, ≤ 1000 символів)
+
+### DELETE /comments/{commentId}
+Видалення відгуку (лише протягом 24 годин після створення).
+
+## База даних
+
+- **JDBC URL**: `jdbc:h2:file:/data/bookstore;AUTO_SERVER=TRUE`
+- **Файл БД**: `/data/bookstore.mv.db`
+- **Користувач**: `sa`
+- **Пароль**: (порожній)
+
+## Тестування
+
+Запуск ArchUnit-тестів:
 
 ```bash
-mvn package
+mvn test
 ```
 
-Результат: `target/frworks.war`
+## Збірка
 
+```bash
+mvn clean package
+```
+
+WAR-файл буде створено в `web/target/web.war`
