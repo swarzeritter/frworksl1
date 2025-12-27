@@ -6,7 +6,9 @@ import org.example.bookstore.domain.PageRequest;
 import org.example.bookstore.port.CatalogRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
+@Service
 public class CatalogService {
     private static final Logger log = LoggerFactory.getLogger(CatalogService.class);
     private final CatalogRepositoryPort catalogRepository;
@@ -32,4 +34,3 @@ public class CatalogService {
         return catalogRepository.findById(id);
     }
 }
-

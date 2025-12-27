@@ -1,94 +1,45 @@
-# Bookstore Application - Лабораторна робота 2
+# Bookstore Application (Spring Boot Edition)
 
-## Опис
-
-Веб-застосунок "Каталог книг" з трирівневою архітектурою на базі багатомодульного Maven-проекту.
+Веб-застосунок "Каталог книг", мігрований на Spring Boot.
 
 ## Структура проєкту
 
-```
-bookstore-parent/
-├── core/          # Доменна логіка, моделі, порти, сервіси
-├── persistence/   # Реалізація портів через JDBC/H2
-└── web/           # HTTP-контракти через Servlet API
-```
+- **core**: Доменна логіка та сервіси (`@Service`)
+- **persistence**: Репозиторії даних (`@Repository`, `JdbcTemplate`)
+- **web**: REST контролери (`@RestController`) та точка входу (`@SpringBootApplication`)
 
 ## Технології
 
-- **JDK**: 21
-- **Maven**: 3.x
-- **Jetty**: 11.0.24
-- **H2**: 2.2.224
-- **Jackson**: 2.17.2
-- **SLF4J/Logback**: 2.0.16 / 1.5.7
-- **ArchUnit**: 1.3.0
+- Java 21
+- Spring Boot 3.2.0 (Web, JDBC)
+- H2 Database
+- Maven
 
 ## Запуск
 
+### Через Maven
 ```bash
-cd web
-mvn jetty:run
+cd frworksl1/web
+mvn spring-boot:run
 ```
 
-Додаток буде доступний за адресою: http://localhost:8080/
+### Як JAR файл
+```bash
+mvn clean package
+java -jar web/target/web-1.0-SNAPSHOT.jar
+```
+
+Додаток доступний за адресою: http://localhost:8080
 
 ## API Endpoints
 
-### GET /books
-Список книг з підтримкою пошуку, пагінації та сортування.
+- **GET /books** - Список книг
+- **GET /books/{id}** - Книга за ID
+- **GET /book-details/{id}** - Книга з коментарями
+- **GET /comments?bookId={id}** - Коментарі до книги
+- **POST /comments** - Створити коментар (Body JSON: `{"bookId": 1, "author": "...", "text": "..."}`)
+- **DELETE /comments/{id}** - Видалити коментар
+- **GET /version** - Версія додатку (демо @Bean)
 
-**Параметри**:
-- `q` - пошуковий запит (опціонально)
-- `page` - номер сторінки (за замовчуванням 0)
-- `size` - розмір сторінки (за замовчуванням 10, максимум 100)
-- `sort` - сортування: `title` або `author` (опціонально)
-
-**Приклад**: `GET /books?q=java&page=0&size=10&sort=title`
-
-### GET /books/{id}
-Отримання книги за ID.
-
-### GET /book-details/{id}
-Отримання книги з відгуками.
-
-### GET /comments
-Список відгуків для книги.
-
-**Параметри**:
-- `bookId` - ID книги (обов'язково)
-
-**Приклад**: `GET /comments?bookId=1`
-
-### POST /comments
-Створення відгуку.
-
-**Параметри форми**:
-- `bookId` - ID книги (обов'язково)
-- `author` - автор (обов'язково, ≤ 64 символів)
-- `text` - текст (обов'язково, ≤ 1000 символів)
-
-### DELETE /comments/{commentId}
-Видалення відгуку (лише протягом 24 годин після створення).
-
-## База даних
-
-- **JDBC URL**: `jdbc:h2:file:/data/bookstore;AUTO_SERVER=TRUE`
-- **Файл БД**: `/data/bookstore.mv.db`
-- **Користувач**: `sa`
-- **Пароль**: (порожній)
-
-## Тестування
-
-Запуск ArchUnit-тестів:
-
-```bash
-mvn test
-```
-
-## Збірка
-
-```bash
-mvn clean package
-```
-
-WAR-файл буде створено в `web/target/web.war`
+## Конфігурація
+Налаштування знаходяться в `web/src/main/resources/application.properties`.

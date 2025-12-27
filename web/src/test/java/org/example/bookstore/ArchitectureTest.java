@@ -6,6 +6,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.bind.annotation.RestController;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
@@ -16,8 +17,9 @@ public class ArchitectureTest {
     @ArchTest
     static final ArchRule controllers_should_only_be_in_web = 
         classes()
-            .that().haveSimpleNameEndingWith("Servlet")
-            .should().resideInAPackage("..web..");
+            .that().haveSimpleNameEndingWith("Controller")
+            .should().resideInAPackage("..web..")
+            .andShould().beAnnotatedWith(RestController.class);
 
     @Test
     void testNoCyclicDependencies() {

@@ -4,29 +4,25 @@ import org.example.bookstore.domain.Book;
 import org.example.bookstore.domain.Page;
 import org.example.bookstore.domain.PageRequest;
 import org.example.bookstore.port.CatalogRepositoryPort;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class JdbcCatalogRepository implements CatalogRepositoryPort {
-    private static final Logger log = LoggerFactory.getLogger(JdbcCatalogRepository.class);
-    private static final String JDBC_URL = "jdbc:h2:file:/data/bookstore;AUTO_SERVER=TRUE";
-    private static final String JDBC_USER = "sa";
-    private static final String JDBC_PASSWORD = "";
+    private final JdbcTemplate jdbcTemplate;
 
-    static {
-        try {
-            Class.forName("org.h2.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("H2 driver not found", e);
-        }
-        initSchema();
+    public JdbcCatalogRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+        initSchema(); // For simplicity in this lab, typically done by schema.sql
+        initSampleData();
     }
 
-    private static void initSchema() {
+    private void initSchema() {
         String ddl = """
                 create table if not exists books (
                     id bigint generated always as identity primary key,
@@ -36,127 +32,69 @@ public class JdbcCatalogRepository implements CatalogRepositoryPort {
                     description varchar(2000)
                 );
                 """;
-        try (Connection c = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
-             Statement st = c.createStatement()) {
-            st.executeUpdate(ddl);
-            initSampleData(c);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to initialize schema", e);
+        jdbcTemplate.execute(ddl);
+    }
+    
+    private void initSampleData() {
+        Long count = jdbcTemplate.queryForObject("select count(*) from books", Long.class);
+        if (count != null && count == 0) {
+            String sql = "insert into books(title, author, isbn, description) values (?, ?, ?, ?)";
+            jdbcTemplate.update(sql, "Spring Boot in Action", "Craig Walls", "9781617292545", "Spring Boot in Action is a developer-focused guide to writing applications using Spring Boot.");
+            jdbcTemplate.update(sql, "Cloud Native Java", "Josh Long", "9781449374648", "Cloud Native Java demonstrates how to build systems using the Spring Framework.");
+            jdbcTemplate.update(sql, "Java Concurrency in Practice", "Brian Goetz", "9780321349606", "Java Concurrency in Practice provides you with the concepts and techniques.");
         }
     }
 
-    private static void initSampleData(Connection c) throws SQLException {
-        try (Statement st = c.createStatement()) {
-            ResultSet rs = st.executeQuery("select count(*) from books");
-            if (rs.next() && rs.getInt(1) == 0) {
-                st.executeUpdate("""
-                    insert into books (title, author, isbn, description) values
-                    ('Effective Java', 'Joshua Bloch', '978-0134685991', 'A programming guide by Java platform architect Joshua Bloch'),
-                    ('Clean Code', 'Robert C. Martin', '978-0132350884', 'A Handbook of Agile Software Craftsmanship'),
-                    ('Design Patterns', 'Gang of Four', '978-0201633610', 'Elements of Reusable Object-Oriented Software'),
-                    ('Java Concurrency in Practice', 'Brian Goetz', '978-0321349606', 'A comprehensive guide to concurrent programming in Java'),
-                    ('Refactoring', 'Martin Fowler', '978-0134757599', 'Improving the Design of Existing Code')
-                    """);
-            }
-        }
-    }
+    private final RowMapper<Book> bookRowMapper = (rs, rowNum) -> new Book(
+            rs.getLong("id"),
+            rs.getString("title"),
+            rs.getString("author"),
+            rs.getString("isbn"),
+            rs.getString("description")
+    );
 
     @Override
     public Page<Book> findAll(String query, PageRequest pageRequest) {
-        List<Book> books = new ArrayList<>();
-        long totalElements = 0;
+        StringBuilder sql = new StringBuilder("select * from books");
+        StringBuilder countSql = new StringBuilder("select count(*) from books");
+        List<Object> params = new ArrayList<>();
 
-        String whereClause = "";
-        if (query != null && !query.trim().isEmpty()) {
-            whereClause = " where lower(title) like ? or lower(author) like ? or lower(isbn) like ?";
+        if (query != null && !query.isBlank()) {
+            String whereClause = " where lower(title) like ? or lower(author) like ? or lower(isbn) like ?";
+            sql.append(whereClause);
+            countSql.append(whereClause);
+            String searchPattern = "%" + query.toLowerCase() + "%";
+            params.add(searchPattern);
+            params.add(searchPattern);
+            params.add(searchPattern);
         }
 
-        String countSql = "select count(*) from books" + whereClause;
-        String selectSql = "select id, title, author, isbn, description from books" + whereClause;
-
-        String sortClause = "";
-        if (pageRequest.getSort() != null && !pageRequest.getSort().trim().isEmpty()) {
-            String sort = pageRequest.getSort().trim();
-            if (sort.equals("title") || sort.equals("author")) {
-                sortClause = " order by " + sort;
-            }
+        if (pageRequest.getSort() != null) {
+            String sortColumn = "title".equals(pageRequest.getSort()) ? "title" : "author".equals(pageRequest.getSort()) ? "author" : "id";
+            sql.append(" order by ").append(sortColumn);
         } else {
-            sortClause = " order by id";
-        }
-        selectSql += sortClause;
-        selectSql += " limit ? offset ?";
-
-        try (Connection c = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD)) {
-            // Count total
-            try (PreparedStatement ps = c.prepareStatement(countSql)) {
-                if (!whereClause.isEmpty()) {
-                    String searchPattern = "%" + query.toLowerCase() + "%";
-                    ps.setString(1, searchPattern);
-                    ps.setString(2, searchPattern);
-                    ps.setString(3, searchPattern);
-                }
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        totalElements = rs.getLong(1);
-                    }
-                }
-            }
-
-            // Select page
-            try (PreparedStatement ps = c.prepareStatement(selectSql)) {
-                int paramIndex = 1;
-                if (!whereClause.isEmpty()) {
-                    String searchPattern = "%" + query.toLowerCase() + "%";
-                    ps.setString(paramIndex++, searchPattern);
-                    ps.setString(paramIndex++, searchPattern);
-                    ps.setString(paramIndex++, searchPattern);
-                }
-                ps.setInt(paramIndex++, pageRequest.getSize());
-                ps.setInt(paramIndex, pageRequest.getOffset());
-
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        Book book = new Book(
-                                rs.getLong("id"),
-                                rs.getString("title"),
-                                rs.getString("author"),
-                                rs.getString("isbn"),
-                                rs.getString("description")
-                        );
-                        books.add(book);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            log.error("Failed to find books", e);
-            throw new RuntimeException("Database error", e);
+            sql.append(" order by id");
         }
 
-        return new Page<>(books, pageRequest.getPage(), pageRequest.getSize(), totalElements);
+        sql.append(" limit ? offset ?");
+        params.add(pageRequest.getSize());
+        params.add(pageRequest.getOffset());
+
+        List<Book> content = jdbcTemplate.query(sql.toString(), bookRowMapper, params.toArray());
+
+        // Count query params (without limit/offset)
+        List<Object> countParams = params.subList(0, params.size() - 2);
+        Long totalElements = jdbcTemplate.queryForObject(countSql.toString(), Long.class, countParams.toArray());
+
+        return new Page<>(content, pageRequest.getPage(), pageRequest.getSize(), totalElements != null ? totalElements : 0);
     }
 
     @Override
     public Book findById(Long id) {
-        String sql = "select id, title, author, isbn, description from books where id = ?";
-        try (Connection c = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
-             PreparedStatement ps = c.prepareStatement(sql)) {
-            ps.setLong(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return new Book(
-                            rs.getLong("id"),
-                            rs.getString("title"),
-                            rs.getString("author"),
-                            rs.getString("isbn"),
-                            rs.getString("description")
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            log.error("Failed to find book by id: " + id, e);
-            throw new RuntimeException("Database error", e);
+        try {
+            return jdbcTemplate.queryForObject("select * from books where id = ?", bookRowMapper, id);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
         }
-        return null;
     }
 }
-

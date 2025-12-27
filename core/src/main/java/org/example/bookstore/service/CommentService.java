@@ -4,11 +4,13 @@ import org.example.bookstore.domain.Comment;
 import org.example.bookstore.port.CommentRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Service
 public class CommentService {
     private static final Logger log = LoggerFactory.getLogger(CommentService.class);
     private static final Duration DELETE_WINDOW = Duration.ofHours(24);
@@ -69,4 +71,3 @@ public class CommentService {
         }
     }
 }
-
