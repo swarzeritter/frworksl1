@@ -24,7 +24,7 @@
 ### Через Maven (Exec)
 ```bash
 cd frworksl1/web
-mvn compile exec:java -Dexec.mainClass="org.example.bookstore.web.JavalinBookApp"
+mvn compile exec:java
 ```
 
 ### API Endpoints
