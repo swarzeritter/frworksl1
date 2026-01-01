@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: header}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 th:text="#{form.add}">Add New Book</h2>
+
+    <form th:action="@{/books/add}" th:object="${book}" method="post">
+        <div class="mb-3">
+            <label for="isbn" class="form-label" th:text="#{list.isbn}">ISBN</label>
+            <input type="text" class="form-control" id="isbn" th:field="*{isbn}" required>
+        </div>
+        <div class="mb-3">
+            <label for="title" class="form-label" th:text="#{list.title_col}">Title</label>
+            <input type="text" class="form-control" id="title" th:field="*{title}" required>
+        </div>
+        <div class="mb-3">
+            <label for="author" class="form-label" th:text="#{list.author}">Author</label>
+            <input type="text" class="form-control" id="author" th:field="*{author}" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label" th:text="#{list.description}">Description</label>
+            <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success" th:text="#{form.save}">Save</button>
+        <a th:href="@{/books}" class="btn btn-secondary" th:text="#{form.cancel}">Cancel</a>
+    </form>
+</div>
+</body>
+</html>
+

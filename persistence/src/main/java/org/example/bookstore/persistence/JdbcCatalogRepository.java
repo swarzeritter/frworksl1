@@ -12,6 +12,11 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+
 @Repository
 public class JdbcCatalogRepository implements CatalogRepositoryPort {
     private final JdbcTemplate jdbcTemplate;
@@ -21,6 +26,7 @@ public class JdbcCatalogRepository implements CatalogRepositoryPort {
         initSchema(); // For simplicity in this lab, typically done by schema.sql
         initSampleData();
     }
+
 
     private void initSchema() {
         String ddl = """
@@ -96,5 +102,26 @@ public class JdbcCatalogRepository implements CatalogRepositoryPort {
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public Book save(Book book) {
+        if (book.getId() == null) {
+            String sql = "insert into books(title, author, isbn, description) values (?, ?, ?, ?)";
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, book.getTitle());
+                ps.setString(2, book.getAuthor());
+                ps.setString(3, book.getIsbn());
+                ps.setString(4, book.getDescription());
+                return ps;
+            }, keyHolder);
+            book.setId(keyHolder.getKey().longValue());
+        } else {
+            String sql = "update books set title = ?, author = ?, isbn = ?, description = ? where id = ?";
+            jdbcTemplate.update(sql, book.getTitle(), book.getAuthor(), book.getIsbn(), book.getDescription(), book.getId());
+        }
+        return book;
     }
 }

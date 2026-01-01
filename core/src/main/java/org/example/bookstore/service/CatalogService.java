@@ -33,4 +33,21 @@ public class CatalogService {
         }
         return catalogRepository.findById(id);
     }
+
+    public Book saveBook(Book book) {
+        if (book == null) {
+            throw new IllegalArgumentException("Book cannot be null");
+        }
+        // Basic validation
+        if (book.getTitle() == null || book.getTitle().isBlank()) {
+            throw new IllegalArgumentException("Title is required");
+        }
+        if (book.getAuthor() == null || book.getAuthor().isBlank()) {
+            throw new IllegalArgumentException("Author is required");
+        }
+        if (book.getIsbn() == null || book.getIsbn().isBlank()) {
+            throw new IllegalArgumentException("ISBN is required");
+        }
+        return catalogRepository.save(book);
+    }
 }
