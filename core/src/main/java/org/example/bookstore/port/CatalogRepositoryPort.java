@@ -7,5 +7,6 @@ import org.example.bookstore.domain.PageRequest;
 public interface CatalogRepositoryPort {
     Page<Book> findAll(String query, PageRequest pageRequest);
     Book findById(Long id);
+    Book save(Book book);
 }
 

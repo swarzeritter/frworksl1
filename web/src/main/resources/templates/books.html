@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: header}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 th:text="#{list.title}">Books List</h2>
+
+    <div th:if="${#lists.isEmpty(books)}" class="alert alert-info">
+        <span th:text="#{list.empty}">No books found</span>
+    </div>
+
+    <table class="table table-striped" th:unless="${#lists.isEmpty(books)}">
+        <thead>
+        <tr>
+            <th th:text="#{list.id}">ID</th>
+            <th th:text="#{list.isbn}">ISBN</th>
+            <th th:text="#{list.title_col}">Title</th>
+            <th th:text="#{list.author}">Author</th>
+            <th th:text="#{list.year}">Year</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="book : ${books}">
+            <td th:text="${book.id}">1</td>
+            <td th:text="${book.isbn}">123</td>
+            <td th:text="${book.title}">Title</td>
+            <td th:text="${book.author}">Author</td>
+            <td th:text="${book.year}">2021</td>
+            <td>
+                <a th:href="@{/book-details/{id}(id=${book.id})}" class="btn btn-primary btn-sm" th:text="#{list.details}">Details</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+

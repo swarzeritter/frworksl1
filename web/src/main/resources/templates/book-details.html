@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: header}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 th:text="#{book.details}">Book Details</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title" th:text="${book.title}">Title</h5>
+            <h6 class="card-subtitle mb-2 text-muted" th:text="${book.author}">Author</h6>
+            <p class="card-text">
+                <strong th:text="#{list.isbn}">ISBN</strong>: <span th:text="${book.isbn}">123</span><br>
+                <strong th:text="#{list.year}">Year</strong>: <span th:text="${book.year}">2021</span><br>
+                <strong th:text="#{list.description}">Description</strong>: <span th:text="${book.description}">Desc</span>
+            </p>
+            <a th:href="@{/books}" class="btn btn-primary" th:text="#{nav.home}">Back to list</a>
+        </div>
+    </div>
+
+    <h3 th:text="#{book.comments}">Comments</h3>
+    <ul class="list-group" th:if="${not #lists.isEmpty(comments)}">
+        <li class="list-group-item" th:each="comment : ${comments}">
+            <strong th:text="${comment.author}">User</strong>: <span th:text="${comment.text}">Comment text</span>
+        </li>
+    </ul>
+    <div th:if="${#lists.isEmpty(comments)}" class="alert alert-light">
+        No comments yet.
+    </div>
+</div>
+</body>
+</html>
+

@@ -6,6 +6,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
@@ -19,7 +20,8 @@ public class ArchitectureTest {
         classes()
             .that().haveSimpleNameEndingWith("Controller")
             .should().resideInAPackage("..web..")
-            .andShould().beAnnotatedWith(RestController.class);
+            .andShould().beAnnotatedWith(RestController.class)
+            .orShould().beAnnotatedWith(Controller.class);
 
     @Test
     void testNoCyclicDependencies() {
