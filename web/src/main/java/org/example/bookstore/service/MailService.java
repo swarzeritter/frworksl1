@@ -1,7 +1,7 @@
 package org.example.bookstore.service;
 
 import jakarta.mail.internet.MimeMessage;
-import org.example.bookstore.domain.Book;
+import org.example.bookstore.domain.BookEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ public class MailService {
         this.templateProcessor = templateProcessor;
     }
 
-    public void sendNewBookEmail(Book book) {
+    public void sendNewBookEmail(BookEntity book) {
         Map<String, Object> model = new HashMap<>();
         model.put("title", book.getTitle());
         model.put("author", book.getAuthor());

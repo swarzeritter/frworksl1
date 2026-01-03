@@ -1,12 +1,11 @@
 package org.example.bookstore.port;
 
-import org.example.bookstore.domain.Book;
+import org.example.bookstore.domain.BookEntity;
 import org.example.bookstore.domain.Page;
 import org.example.bookstore.domain.PageRequest;
 
 public interface CatalogRepositoryPort {
-    Page<Book> findAll(String query, PageRequest pageRequest);
-    Book findById(Long id);
-    Book save(Book book);
+    Page<BookEntity> findAll(String query, PageRequest pageRequest);
+    BookEntity findById(Long id);
+    BookEntity save(BookEntity book);
 }
-

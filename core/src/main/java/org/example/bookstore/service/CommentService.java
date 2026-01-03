@@ -1,10 +1,15 @@
 package org.example.bookstore.service;
 
-import org.example.bookstore.domain.Comment;
+import org.example.bookstore.domain.BookEntity;
+import org.example.bookstore.domain.CommentEntity;
+import org.example.bookstore.domain.UserEntity;
+import org.example.bookstore.port.CatalogRepositoryPort;
 import org.example.bookstore.port.CommentRepositoryPort;
+import org.example.bookstore.port.UserRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -16,24 +21,45 @@ public class CommentService {
     private static final Duration DELETE_WINDOW = Duration.ofHours(24);
     
     private final CommentRepositoryPort commentRepository;
+    private final CatalogRepositoryPort catalogRepository;
+    private final UserRepositoryPort userRepository;
 
-    public CommentService(CommentRepositoryPort commentRepository) {
+    public CommentService(CommentRepositoryPort commentRepository, CatalogRepositoryPort catalogRepository, UserRepositoryPort userRepository) {
         this.commentRepository = commentRepository;
+        this.catalogRepository = catalogRepository;
+        this.userRepository = userRepository;
     }
 
-    public List<Comment> findCommentsByBookId(Long bookId) {
+    public List<CommentEntity> findCommentsByBookId(Long bookId) {
         if (bookId == null || bookId <= 0) {
             throw new IllegalArgumentException("Book ID must be positive");
         }
         return commentRepository.findByBookId(bookId);
     }
+    
+    public List<CommentEntity> getCommentsByUser(Long userId) {
+        return commentRepository.findByUserId(userId);
+    }
 
-    public Comment createComment(Long bookId, String author, String text) {
-        validateComment(author, text);
+    @Transactional
+    public CommentEntity createComment(Long bookId, String authorName, String text) {
+        validateComment(authorName, text);
         
-        Comment comment = new Comment();
-        comment.setBookId(bookId);
-        comment.setAuthor(author.trim());
+        BookEntity book = catalogRepository.findById(bookId);
+        if (book == null) {
+            throw new IllegalArgumentException("Book not found");
+        }
+        
+        // Find or create user
+        UserEntity user = userRepository.findByUsername(authorName)
+                .orElseGet(() -> {
+                    UserEntity newUser = new UserEntity(authorName, "", "USER");
+                    return userRepository.save(newUser);
+                });
+        
+        CommentEntity comment = new CommentEntity();
+        comment.setBook(book);
+        comment.setUser(user);
         comment.setText(text.trim());
         comment.setCreatedAt(LocalDateTime.now());
         
@@ -41,7 +67,7 @@ public class CommentService {
     }
 
     public void deleteComment(Long commentId) {
-        Comment comment = commentRepository.findById(commentId);
+        CommentEntity comment = commentRepository.findById(commentId);
         if (comment == null) {
             throw new IllegalArgumentException("Comment not found");
         }

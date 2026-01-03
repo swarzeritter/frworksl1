@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: header}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2>Comments by User: <span th:text="${username}" class="text-primary">User</span></h2>
+    
+    <div th:if="${#lists.isEmpty(comments)}" class="alert alert-info mt-3">
+        This user hasn't posted any comments yet.
+    </div>
+
+    <ul class="list-group mt-3" th:if="${not #lists.isEmpty(comments)}">
+        <li class="list-group-item" th:each="c : ${comments}">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">
+                    Book: <a th:href="@{/book-details/{id}(id=${c.book.id})}" th:text="${c.book.title}">Book Title</a>
+                </h5>
+                <small th:text="${#temporals.format(c.createdAt, 'yyyy-MM-dd HH:mm')}">Date</small>
+            </div>
+            <p class="mb-1" th:text="${c.text}">Comment Text</p>
+        </li>
+    </ul>
+    
+    <a th:href="@{/books}" class="btn btn-secondary mt-3">Back to Books</a>
+</div>
+</body>
+</html>
+
+

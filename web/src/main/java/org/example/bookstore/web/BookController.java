@@ -1,7 +1,7 @@
 package org.example.bookstore.web;
 
-import org.example.bookstore.domain.Book;
-import org.example.bookstore.domain.Comment;
+import org.example.bookstore.domain.BookEntity;
+import org.example.bookstore.domain.CommentEntity;
 import org.example.bookstore.domain.Page;
 import org.example.bookstore.domain.PageRequest;
 import org.example.bookstore.service.CatalogService;
@@ -45,7 +45,7 @@ public class BookController {
             Model model) {
         
         PageRequest pageRequest = new PageRequest(page, size, sort);
-        Page<Book> bookPage = catalogService.findBooks(q, pageRequest);
+        Page<BookEntity> bookPage = catalogService.findBooks(q, pageRequest);
         model.addAttribute("books", bookPage.getContent());
         return "books";
     }
@@ -57,11 +57,11 @@ public class BookController {
 
     @GetMapping("/book-details/{id}")
     public String getBookDetails(@PathVariable Long id, Model model) {
-        Book book = catalogService.findBookById(id);
+        BookEntity book = catalogService.findBookById(id);
         if (book == null) {
              return "redirect:/books"; 
         }
-        List<Comment> comments = commentService.findCommentsByBookId(id);
+        List<CommentEntity> comments = commentService.findCommentsByBookId(id);
 
         model.addAttribute("book", book);
         model.addAttribute("comments", comments);
@@ -70,12 +70,12 @@ public class BookController {
     
     @GetMapping("/books/add")
     public String showAddBookForm(Model model) {
-        model.addAttribute("book", new Book());
+        model.addAttribute("book", new BookEntity());
         return "book-form";
     }
 
     @PostMapping("/books/add")
-    public String saveBook(@ModelAttribute Book book) {
+    public String saveBook(@ModelAttribute BookEntity book) {
         catalogService.saveBook(book);
         
         // Lab 7: Send email notification

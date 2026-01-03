@@ -1,43 +1,53 @@
-# Bookstore Application (Spring MVC + Thymeleaf + FreeMarker Mail)
+# Bookstore Application (Lab 8)
 
-Веб-застосунок "Каталог книг" з функцією email-сповіщень.
+Багатомодульний Spring Boot проєкт ("Bookstore"), що демонструє використання сучасних технологій Java для веб-розробки.
 
-## Структура проєкту
+## Модулі
 
-- **core**: Доменна логіка.
-- **persistence**: Репозиторії даних.
-- **web**: 
-  - MVC Контролери та UI на **Thymeleaf**.
-  - Email-сервіс на **FreeMarker** (Lab 7).
+*   **core**: Бізнес-логіка, доменні сутності (JPA Entities), порти (інтерфейси), сервіси.
+*   **persistence**: Реалізація доступу до даних (Adapters), Spring Data JPA Repositories, Flyway міграції.
+*   **web**: Веб-інтерфейс (Spring MVC, Thymeleaf), REST контролери, конфігурація застосунку.
 
-## Технології
+## Технології (Lab 8 Update)
 
-- Java 21
-- Spring Boot 3.x
-- Thymeleaf (Web UI)
-- FreeMarker (Email Templates)
-- JavaMailSender (SMTP)
-- H2 Database
-
-## Функціональність
-
-1. **Каталог книг**: Перегляд, пошук, сортування (`/books`).
-2. **Деталі**: Перегляд інформації та відгуків (`/book-details/{id}`).
-3. **Додавання**: Форма додавання нової книги (`/books/add`).
-4. **Email-сповіщення**: При додаванні книги адміністратор отримує HTML-лист з деталями.
-   - Підтримка умовного форматування (раритетні книги).
-   - Стилізований шаблон з логотипом.
+*   **Spring Boot 3.x**
+*   **Spring Data JPA / Hibernate**: ORM для роботи з базою даних.
+*   **H2 Database**: Вбудована база даних (зберігає дані у файлі).
+*   **Flyway**: Версіонування та міграція схеми бази даних.
+*   **Thymeleaf**: Серверний рендеринг HTML сторінок.
+*   **FreeMarker**: Генерація HTML-листів.
+*   **JavaMailSender**: Відправка електронної пошти (SMTP).
 
 ## Запуск
 
-Перед запуском налаштуйте SMTP у `src/main/resources/application.properties`:
-```properties
-spring.mail.username=ВАШ_GMAIL
-spring.mail.password=ВАШ_APP_PASSWORD
-```
+1.  Переконайтеся, що у вас встановлено JDK 17+ та Maven.
+2.  Перейдіть у кореневу директорію проєкту:
+    ```bash
+    cd frworksl1
+    ```
+3.  Встановіть залежності (це також скомпілює модулі `core` та `persistence`):
+    ```bash
+    mvn clean install
+    ```
+4.  Перейдіть у модуль `web` та запустіть застосунок:
+    ```bash
+    cd web
+    mvn spring-boot:run
+    ```
 
-Запуск через Maven:
-```bash
-cd frworksl1/web
-mvn spring-boot:run
-```
+## Функціонал
+
+*   **Книги**: Перегляд списку, деталі, додавання нових книг.
+*   **Коментарі**: Додавання коментарів до книг, перегляд коментарів користувача.
+*   **Користувачі**: Базова сутність користувача (без повноцінного логіну, автоматичне створення при коментуванні).
+*   **Email**: Автоматична відправка листа при додаванні книги.
+
+## База даних
+
+Застосунок використовує H2 Database.
+Консоль H2 доступна за адресою: [http://localhost:8080/h2-console](http://localhost:8080/h2-console)
+*   **JDBC URL**: `jdbc:h2:file:./bookstore` (важливо!)
+*   **User Name**: `sa`
+*   **Password**: (пусто)
+
+Схема керується Flyway (`V1__init.sql`).

@@ -1,12 +1,13 @@
 package org.example.bookstore.service;
 
-import org.example.bookstore.domain.Book;
+import org.example.bookstore.domain.BookEntity;
 import org.example.bookstore.domain.Page;
 import org.example.bookstore.domain.PageRequest;
 import org.example.bookstore.port.CatalogRepositoryPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CatalogService {
@@ -17,7 +18,8 @@ public class CatalogService {
         this.catalogRepository = catalogRepository;
     }
 
-    public Page<Book> findBooks(String query, PageRequest pageRequest) {
+    @Transactional(readOnly = true)
+    public Page<BookEntity> findBooks(String query, PageRequest pageRequest) {
         if (pageRequest.getPage() < 0) {
             throw new IllegalArgumentException("Page number must be non-negative");
         }
@@ -27,14 +29,16 @@ public class CatalogService {
         return catalogRepository.findAll(query, pageRequest);
     }
 
-    public Book findBookById(Long id) {
+    @Transactional(readOnly = true)
+    public BookEntity findBookById(Long id) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException("Book ID must be positive");
         }
         return catalogRepository.findById(id);
     }
 
-    public Book saveBook(Book book) {
+    @Transactional
+    public BookEntity saveBook(BookEntity book) {
         if (book == null) {
             throw new IllegalArgumentException("Book cannot be null");
         }

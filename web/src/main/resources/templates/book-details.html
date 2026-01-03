@@ -23,13 +23,35 @@
     <h3 th:text="#{book.comments}">Comments</h3>
     <ul class="list-group" th:if="${not #lists.isEmpty(comments)}">
         <li class="list-group-item" th:each="comment : ${comments}">
-            <strong th:text="${comment.author}">User</strong>: <span th:text="${comment.text}">Comment text</span>
+            <strong>
+                <a th:href="@{/users/{id}/comments(id=${comment.user.id})}" th:text="${comment.user.username}">User</a>
+            </strong>: 
+            <span th:text="${comment.text}">Comment text</span>
+            <br/>
+            <small class="text-muted" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">Date</small>
         </li>
     </ul>
     <div th:if="${#lists.isEmpty(comments)}" class="alert alert-light">
         No comments yet.
     </div>
+
+    <div class="card mt-4">
+        <div class="card-header">Add Comment</div>
+        <div class="card-body">
+            <form th:action="@{/comments}" method="post">
+                <input type="hidden" name="bookId" th:value="${book.id}"/>
+                <div class="mb-3">
+                    <label for="author" class="form-label">Name (User)</label>
+                    <input type="text" class="form-control" id="author" name="author" required>
+                </div>
+                <div class="mb-3">
+                    <label for="text" class="form-label">Comment</label>
+                    <textarea class="form-control" id="text" name="text" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Submit</button>
+            </form>
+        </div>
+    </div>
 </div>
 </body>
 </html>
-
