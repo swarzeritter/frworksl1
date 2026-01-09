@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="header">
     <meta charset="UTF-8">
     <title th:text="#{app.title}">Bookstore</title>
@@ -14,17 +14,32 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/books}" th:text="#{nav.home}">Home</a>
                 </li>
-                <li class="nav-item">
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/books/add}" th:text="#{nav.add}">Add Book</a>
                 </li>
             </ul>
-            <div class="d-flex">
+            <div class="d-flex align-items-center">
+                <div class="me-3" sec:authorize="isAuthenticated()">
+                   <span th:text="#{nav.hello} + ', '">Hello, </span>
+                   <strong sec:authentication="name">User</strong>
+                   <span class="badge bg-secondary ms-1" sec:authentication="principal.authorities"></span>
+                </div>
+                
                 <a href="?lang=uk" class="btn btn-outline-secondary btn-sm me-2">UA</a>
-                <a href="?lang=en" class="btn btn-outline-secondary btn-sm">EN</a>
+                <a href="?lang=en" class="btn btn-outline-secondary btn-sm me-2">EN</a>
+                
+                <div sec:authorize="isAnonymous()">
+                    <a th:href="@{/login}" class="btn btn-primary btn-sm me-2">Login</a>
+                    <a th:href="@{/register}" class="btn btn-success btn-sm">Register</a>
+                </div>
+                <div sec:authorize="isAuthenticated()">
+                     <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </nav>
 </body>
 </html>
-

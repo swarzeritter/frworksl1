@@ -29,7 +29,7 @@ CREATE TABLE comments (
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-INSERT INTO users (username, password, role) VALUES ('admin', 'admin', 'ADMIN');
-INSERT INTO users (username, password, role) VALUES ('user', 'user', 'USER');
+INSERT INTO users (username, password, role) VALUES ('admin', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'ADMIN');
+INSERT INTO users (username, password, role) VALUES ('user', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HZWzG3YB1tlRy.fqvM/BG', 'USER');
 
 
